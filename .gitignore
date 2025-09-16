@@ -1,4 +1,4 @@
-# Unity generated folders
+    # Unity generated folders
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
@@ -83,3 +83,6 @@ ServerData/
 
 # Auto-generated test scenes
 [Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# Visual Studio configuration files
+*.vsconfig
