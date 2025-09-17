@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+
 public class CirclePlacer : MonoBehaviour
 {
     [SerializeField] private GameObject prefab;
@@ -92,10 +93,27 @@ public class CirclePlacer : MonoBehaviour
     
     [SerializeField] private Direction orbitDirection = Direction.Left;
     
+    public enum PlacementMode
+    {
+        Evenly,   
+        Sequential 
+    }
     
+    [SerializeField] private PlacementMode placementMode = PlacementMode.Evenly;
+    [SerializeField] private float spacingBetweenPlaces = 0.9f;
+
+    public float SpacingBetweenPlaces
+    {
+        get => spacingBetweenPlaces;
+        set => spacingBetweenPlaces = value;
+    }
+    
+        
     private GameObject[] objects;
     private float[] angles;
     private int lastCount;
+    private PlacementMode lastPlacementMode;
+    private float lastSpacing;
 
     void Awake()
     {
@@ -103,13 +121,22 @@ public class CirclePlacer : MonoBehaviour
             centerObject = this.transform;
 
         InitializeObjects();
+        lastPlacementMode = placementMode;
+        lastSpacing = spacingBetweenPlaces;
     }
 
     void Update()
     {
-        if (count != lastCount || Mathf.Abs(radius - Radius) > 0.001f)
+        if (count != lastCount ||
+            Mathf.Abs(radius - Radius) > 0.001f ||
+            placementMode != lastPlacementMode ||
+            Mathf.Abs(spacingBetweenPlaces - lastSpacing) > 0.001f)
+        {
             InitializeObjects();
-        
+            lastPlacementMode = placementMode;
+            lastSpacing = spacingBetweenPlaces;
+        }
+
         var dir = (int)orbitDirection;
         
         for (var i = 0; i < Count; i++)
@@ -123,7 +150,6 @@ public class CirclePlacer : MonoBehaviour
             );
 
             objects[i].transform.position = pos;
-            
             objects[i].transform.Rotate(Vector3.up, selfRotateSpeed * Time.deltaTime, Space.Self);
         }
     }
@@ -136,20 +162,23 @@ public class CirclePlacer : MonoBehaviour
                 if (obj)
                     Destroy(obj);
 
-        objects = new GameObject[count];
-        angles = new float[count];
-        lastCount = count;
+        objects = new GameObject[Count];
+        angles = new float[Count];
+        lastCount = Count;
 
-        var step = 2f * Mathf.PI / count;
-
-        for (var i = 0; i < count; i++)
+        var step = 2f * Mathf.PI / Count;
+        
+        for (var i = 0; i < Count; i++)
         {
             var angle = i * step;
-
+            if (placementMode == PlacementMode.Evenly)
+                angle = i * step;
+            else if (placementMode == PlacementMode.Sequential)
+                angle = i * SpacingBetweenPlaces;
             Vector3 pos = new(
-                centerObject.position.x + Mathf.Cos(angle) * radius,
+                centerObject.position.x + Mathf.Cos(angle) * Radius,
                 centerObject.position.y,
-                centerObject.position.z + Mathf.Sin(angle) * radius
+                centerObject.position.z + Mathf.Sin(angle) * Radius
             );
 
             objects[i] = Instantiate(Prefab, pos, Quaternion.LookRotation(centerObject.position - pos), transform);

@@ -424,6 +424,8 @@ MonoBehaviour:
   orbitSpeed: 40
   centerObject: {fileID: 1351261929}
   orbitDirection: 1
+  placementMode: 0
+  spacingBetweenPlaces: 0.9
 --- !u!4 &755312794
 Transform:
   m_ObjectHideFlags: 0
