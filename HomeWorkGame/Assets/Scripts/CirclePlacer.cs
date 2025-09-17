@@ -83,13 +83,21 @@ public class CirclePlacer : MonoBehaviour
             centerObject = value;
         }
     }
-
+    
+    public enum Direction
+    {
+        Left = 1,
+        Right = -1
+    }
+    
+    [SerializeField] private Direction orbitDirection = Direction.Left;
+    
+    
     private GameObject[] objects;
     private float[] angles;
     private int lastCount;
 
-    
-    void Start()
+    void Awake()
     {
         if (centerObject == null)
             centerObject = this.transform;
@@ -99,13 +107,14 @@ public class CirclePlacer : MonoBehaviour
 
     void Update()
     {
-        if (count != lastCount)
+        if (count != lastCount || Mathf.Abs(radius - Radius) > 0.001f)
             InitializeObjects();
         
+        var dir = (int)orbitDirection;
         
         for (var i = 0; i < Count; i++)
         {
-            angles[i] += OrbitSpeed * Mathf.Deg2Rad * Time.deltaTime;
+            angles[i] += OrbitSpeed * Mathf.Deg2Rad * dir * Time.deltaTime;
 
             Vector3 pos = new(
                 centerObject.position.x + Mathf.Cos(angles[i]) * Radius,
@@ -124,7 +133,7 @@ public class CirclePlacer : MonoBehaviour
         // Удаляем старые объекты
         if (objects != null)
             foreach (var obj in objects)
-                if (obj != null)
+                if (obj)
                     Destroy(obj);
 
         objects = new GameObject[count];
@@ -143,7 +152,7 @@ public class CirclePlacer : MonoBehaviour
                 centerObject.position.z + Mathf.Sin(angle) * radius
             );
 
-            objects[i] = Instantiate(prefab, pos, Quaternion.LookRotation(centerObject.position - pos), transform);
+            objects[i] = Instantiate(Prefab, pos, Quaternion.LookRotation(centerObject.position - pos), transform);
             angles[i] = angle;
         }
     }
