@@ -34,7 +34,7 @@ public class CirclePlacer : MonoBehaviour
         }
     }
 
-    [SerializeField] private float radius = 5f; // Радиус окружности
+    [SerializeField] private float radius = 5f; 
     public float Radius
     {
         get => radius;
@@ -49,7 +49,7 @@ public class CirclePlacer : MonoBehaviour
         }
     }
     
-    [SerializeField] private Vector3 center = Vector3.zero; // Центр окружности
+    [SerializeField] private Vector3 center = Vector3.zero;
     public Vector3 Center
     {
         get => center;
@@ -85,7 +85,7 @@ public class CirclePlacer : MonoBehaviour
         }
     }
     
-    public enum Direction
+    private enum Direction
     {
         Left = 1,
         Right = -1
@@ -93,7 +93,7 @@ public class CirclePlacer : MonoBehaviour
     
     [SerializeField] private Direction orbitDirection = Direction.Left;
     
-    public enum PlacementMode
+    private enum PlacementMode
     {
         Evenly,   
         Sequential 
@@ -109,80 +109,79 @@ public class CirclePlacer : MonoBehaviour
     }
     
         
-    private GameObject[] objects;
-    private float[] angles;
-    private int lastCount;
-    private PlacementMode lastPlacementMode;
-    private float lastSpacing;
+    private GameObject[] _objects;
+    private float[] _angles;
+    private int _lastCount;
+    private PlacementMode _lastPlacementMode;
+    private float _lastSpacing;
 
-    void Awake()
+    private void Awake()
     {
-        if (centerObject == null)
-            centerObject = this.transform;
+        centerObject ??= this.transform;
 
         InitializeObjects();
-        lastPlacementMode = placementMode;
-        lastSpacing = spacingBetweenPlaces;
+        _lastPlacementMode = placementMode;
+        _lastSpacing = spacingBetweenPlaces;
     }
 
-    void Update()
+    private void Update()
     {
-        if (count != lastCount ||
+        if (count != _lastCount ||
             Mathf.Abs(radius - Radius) > 0.001f ||
-            placementMode != lastPlacementMode ||
-            Mathf.Abs(spacingBetweenPlaces - lastSpacing) > 0.001f)
+            placementMode != _lastPlacementMode ||
+            Mathf.Abs(spacingBetweenPlaces - _lastSpacing) > 0.001f)
         {
             InitializeObjects();
-            lastPlacementMode = placementMode;
-            lastSpacing = spacingBetweenPlaces;
+            _lastPlacementMode = placementMode;
+            _lastSpacing = spacingBetweenPlaces;
         }
 
         var dir = (int)orbitDirection;
         
         for (var i = 0; i < Count; i++)
         {
-            angles[i] += OrbitSpeed * Mathf.Deg2Rad * dir * Time.deltaTime;
+            _angles[i] += OrbitSpeed * Mathf.Deg2Rad * dir * Time.deltaTime;
 
             Vector3 pos = new(
-                centerObject.position.x + Mathf.Cos(angles[i]) * Radius,
+                centerObject.position.x + Mathf.Cos(_angles[i]) * Radius,
                 centerObject.position.y,
-                centerObject.position.z + Mathf.Sin(angles[i]) * Radius
+                centerObject.position.z + Mathf.Sin(_angles[i]) * Radius
             );
 
-            objects[i].transform.position = pos;
-            objects[i].transform.Rotate(Vector3.up, selfRotateSpeed * Time.deltaTime, Space.Self);
+            _objects[i].transform.position = pos;
+            _objects[i].transform.Rotate(Vector3.up, selfRotateSpeed * Time.deltaTime, Space.Self);
         }
     }
     
     private void InitializeObjects()
     {
-        // Удаляем старые объекты
-        if (objects != null)
-            foreach (var obj in objects)
+        if (_objects != null)
+            foreach (var obj in _objects)
                 if (obj)
                     Destroy(obj);
 
-        objects = new GameObject[Count];
-        angles = new float[Count];
-        lastCount = Count;
+        _objects = new GameObject[Count];
+        _angles = new float[Count];
+        _lastCount = Count;
 
         var step = 2f * Mathf.PI / Count;
         
         for (var i = 0; i < Count; i++)
         {
-            var angle = i * step;
-            if (placementMode == PlacementMode.Evenly)
-                angle = i * step;
-            else if (placementMode == PlacementMode.Sequential)
-                angle = i * SpacingBetweenPlaces;
+            var angle = placementMode switch
+            {
+                PlacementMode.Evenly => i * step,
+                PlacementMode.Sequential => i * SpacingBetweenPlaces,
+                _ => i * step
+            };
             Vector3 pos = new(
                 centerObject.position.x + Mathf.Cos(angle) * Radius,
                 centerObject.position.y,
                 centerObject.position.z + Mathf.Sin(angle) * Radius
             );
 
-            objects[i] = Instantiate(Prefab, pos, Quaternion.LookRotation(centerObject.position - pos), transform);
-            angles[i] = angle;
+            _objects[i] = Instantiate(Prefab, pos, Quaternion.LookRotation(centerObject.position - pos), transform);
+            _angles[i] = angle;
         }
     }
 }
